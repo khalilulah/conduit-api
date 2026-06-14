@@ -1,4 +1,9 @@
-const { createArticle, findArticleBySlug } = require("./articles.queries");
+const {
+  createArticle,
+  findArticleBySlug,
+  listArticles,
+  countArticles,
+} = require("./articles.queries");
 
 const formatArticle = (row) => ({
   slug: row.slug,
@@ -42,4 +47,23 @@ const createArticleHandler = async (req, res, next) => {
   }
 };
 
-module.exports = { createArticleHandler, formatArticle };
+const listArticlesHandler = async (req, res, next) => {
+  try {
+    const { tag, author, favorited, limit = 20, offset = 0 } = req.query;
+    const currentUserId = req.user ? req.user.id : null;
+
+    const [articles, articlesCount] = await Promise.all([
+      listArticles(currentUserId, { tag, author, favorited, limit, offset }),
+      countArticles({ tag, author, favorited }),
+    ]);
+
+    return res.status(200).json({
+      articles: articles.map(formatArticle),
+      articlesCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createArticleHandler, listArticlesHandler, formatArticle };
