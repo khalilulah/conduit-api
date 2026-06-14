@@ -3,6 +3,11 @@ const {
   findArticleBySlug,
   listArticles,
   countArticles,
+  getFeedArticles,
+  countFeedArticles,
+  updateArticle,
+  deleteArticle,
+  getArticleAuthorId,
 } = require("./articles.queries");
 
 const formatArticle = (row) => ({
@@ -66,4 +71,91 @@ const listArticlesHandler = async (req, res, next) => {
   }
 };
 
-module.exports = { createArticleHandler, listArticlesHandler, formatArticle };
+const getFeedHandler = async (req, res, next) => {
+  try {
+    const { limit = 20, offset = 0 } = req.query;
+
+    const [articles, articlesCount] = await Promise.all([
+      getFeedArticles(req.user.id, { limit, offset }),
+      countFeedArticles(req.user.id),
+    ]);
+
+    return res.status(200).json({
+      articles: articles.map(formatArticle),
+      articlesCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getArticleHandler = async (req, res, next) => {
+  try {
+    const currentUserId = req.user ? req.user.id : null;
+    const article = await findArticleBySlug(req.params.slug, currentUserId);
+
+    if (!article) {
+      return res.status(404).json({ errors: { body: ["article not found"] } });
+    }
+
+    return res.status(200).json({ article: formatArticle(article) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateArticleHandler = async (req, res, next) => {
+  try {
+    const authorId = await getArticleAuthorId(req.params.slug);
+
+    if (!authorId) {
+      return res.status(404).json({ errors: { body: ["article not found"] } });
+    }
+
+    if (authorId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ errors: { body: ["you are not the author"] } });
+    }
+
+    const fields = req.body.article ?? {};
+    const updated = await updateArticle(req.params.slug, fields);
+    const article = await findArticleBySlug(updated.slug, req.user.id);
+
+    return res.status(200).json({ article: formatArticle(article) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteArticleHandler = async (req, res, next) => {
+  try {
+    const authorId = await getArticleAuthorId(req.params.slug);
+
+    if (!authorId) {
+      return res.status(404).json({ errors: { body: ["article not found"] } });
+    }
+
+    if (authorId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ errors: { body: ["you are not the author"] } });
+    }
+
+    await deleteArticle(req.params.slug);
+
+    return res.status(200).json({});
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  createArticleHandler,
+  listArticlesHandler,
+  getFeedHandler,
+  getArticleHandler,
+  updateArticleHandler,
+  deleteArticleHandler,
+  formatArticle,
+};
