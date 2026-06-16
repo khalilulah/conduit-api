@@ -304,6 +304,24 @@ const getArticleAuthorId = async (slug) => {
   return rows[0]?.author_id ?? null;
 };
 
+const favoriteArticle = async (slug, userId) => {
+  await db.query(
+    `INSERT INTO favorites (article_id, user_id)
+     SELECT a.id, $2 FROM articles a WHERE a.slug = $1
+     ON CONFLICT DO NOTHING`,
+    [slug, userId],
+  );
+};
+
+const unfavoriteArticle = async (slug, userId) => {
+  await db.query(
+    `DELETE FROM favorites
+     WHERE article_id = (SELECT id FROM articles WHERE slug = $1)
+     AND user_id = $2`,
+    [slug, userId],
+  );
+};
+
 module.exports = {
   createArticle,
   findArticleBySlug,
@@ -314,4 +332,6 @@ module.exports = {
   updateArticle,
   deleteArticle,
   getArticleAuthorId,
+  favoriteArticle,
+  unfavoriteArticle,
 };

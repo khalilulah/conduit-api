@@ -8,6 +8,8 @@ const {
   getArticleHandler,
   updateArticleHandler,
   deleteArticleHandler,
+  unfavoriteArticleHandler,
+  favoriteArticleHandler,
 } = require("./articles.controller");
 const {
   addCommentHandler,
@@ -23,6 +25,12 @@ router.put("/articles/:slug", authRequired, updateArticleHandler);
 router.delete("/articles/:slug", authRequired, deleteArticleHandler);
 router.post("/articles/:slug/comments", authRequired, addCommentHandler);
 router.get("/articles/:slug/comments", authOptional, getCommentsHandler);
+router.post("/articles/:slug/favorite", authRequired, favoriteArticleHandler);
+router.delete(
+  "/articles/:slug/favorite",
+  authRequired,
+  unfavoriteArticleHandler,
+);
 router.delete(
   "/articles/:slug/comments/:id",
   authRequired,

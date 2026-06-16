@@ -8,6 +8,8 @@ const {
   updateArticle,
   deleteArticle,
   getArticleAuthorId,
+  favoriteArticle,
+  unfavoriteArticle,
 } = require("./articles.queries");
 
 const formatArticle = (row) => ({
@@ -150,6 +152,36 @@ const deleteArticleHandler = async (req, res, next) => {
   }
 };
 
+const favoriteArticleHandler = async (req, res, next) => {
+  try {
+    await favoriteArticle(req.params.slug, req.user.id);
+    const article = await findArticleBySlug(req.params.slug, req.user.id);
+
+    if (!article) {
+      return res.status(404).json({ errors: { body: ["article not found"] } });
+    }
+
+    return res.status(200).json({ article: formatArticle(article) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const unfavoriteArticleHandler = async (req, res, next) => {
+  try {
+    await unfavoriteArticle(req.params.slug, req.user.id);
+    const article = await findArticleBySlug(req.params.slug, req.user.id);
+
+    if (!article) {
+      return res.status(404).json({ errors: { body: ["article not found"] } });
+    }
+
+    return res.status(200).json({ article: formatArticle(article) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createArticleHandler,
   listArticlesHandler,
@@ -158,4 +190,6 @@ module.exports = {
   updateArticleHandler,
   deleteArticleHandler,
   formatArticle,
+  favoriteArticleHandler,
+  unfavoriteArticleHandler,
 };
