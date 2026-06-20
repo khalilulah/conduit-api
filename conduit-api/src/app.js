@@ -29,7 +29,6 @@ app.use(express.json());
 app.use("/api", generalLimiter);
 app.use("/api/users", authLimiter); // covers POST /api/users and POST /api/users/login
 
-const tagsRouter = require("./features/tags/tags.routes");
 app.use("/api", tagsRouter);
 app.use("/api", usersRouter);
 app.use("/api", articlesRouter);

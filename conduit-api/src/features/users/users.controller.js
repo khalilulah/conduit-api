@@ -34,7 +34,7 @@ const register = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    console.log(token);
+
     // 5. Respond
     return res.status(201).json({
       user: {
@@ -86,8 +86,6 @@ const login = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-
-    console.log(token);
 
     // 5. Respond
     return res.status(200).json({
